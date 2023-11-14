@@ -37,10 +37,16 @@ def generate__vcards(data):
             d.write(generate_vcard_content(lname, fname, designation, email, phone))
 
 
+def generate_qr_code(data):
+    os.mkdir("qrcode")
+    for i in data:
+        qr_code = requests.get(f"https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl={i}")
 
+        with open(f"qrcode/{i[0]}.qr.png", "wb") as Q:
+            Q.write(qr_code.content)
 
 
 if __name__ == "__main__":
     data = parse_data(sys.argv[1])
     generate__vcards(data)
-    
+    generate_qr_code(data)
