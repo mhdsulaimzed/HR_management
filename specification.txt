@@ -1,5 +1,5 @@
 OBJECTIVE :
- Python script that converts data from a CSV file into vCard (Virtual Business Card) files. Below is a detailed specification for the code
+ Python script that converts data from a CSV file into vCard (Virtual Visiting Card) files. Below is a detailed specification for the code
  
  
  
