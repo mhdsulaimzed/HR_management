@@ -12,6 +12,7 @@ The actuall purpose of this code is to read informations of employees from csv f
 # Input :
 
 inputs a csv file containing information of employees through commandline
+`python3 vcard.py <filename>`
 
 
 # Output : 
