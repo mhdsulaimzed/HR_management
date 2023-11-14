@@ -16,9 +16,9 @@ inputs a csv file containing information of employees through commandline
 
 Output : 
 
-Makes a directory containing txt files of virtual businesscards named the last name of the employee
+Makes a directory containing txt files of virtual visiting cards named the last name of the employee
 
 
 How to Execute ?
 
-This script should be executed through command line by passing cvs-filename as an argument,therefore main gets hitted and there for executes
+This script should be executed through command line by passing cvs-filename as an argument,therefore main gets hitted and therefor executes
