@@ -1,16 +1,35 @@
+import argparse
 import csv
+import logging
 import os
 import requests
 import sys
 
+
+
+logger = None
+def setup_logging(log_level):
+    global logger
+    logger = logging.getLogger("SheetGen")
+    handler = logging.StreamHandler()
+    fhandler = logging.FileHandler("run.log")
+    fhandler.setLevel(logging.DEBUG)
+    handler.setLevel(log_level)
+    handler.setFormatter(logging.Formatter("[%(levelname)s] %(asctime)s | %(filename)s:%(lineno)d | %(message)s"))
+    fhandler.setFormatter(logging.Formatter("[%(levelname)s] %(asctime)s | %(filename)s:%(lineno)d | %(message)s"))
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+    logger.addHandler(fhandler)
 
 def parse_data(filename):
     datalist = []
     with open(filename, "r") as data:
         detail = csv.reader(data)
         for i in detail:
-            print(i)
+            
             datalist.append(i)
+         
+            
     return datalist
 
 
@@ -35,7 +54,8 @@ def generate__vcards(data):
         lname, fname, designation, email, phone = i
         with open(f"vcards/{lname}.vcf", "w") as d:
             d.write(generate_vcard_content(lname, fname, designation, email, phone))
-
+        logger.debug("Created vcard for %s ",lname)
+    logger.info("Created all vcards")
 
 def generate_qr_code(data):
     os.mkdir("qrcode")
@@ -44,9 +64,11 @@ def generate_qr_code(data):
 
         with open(f"qrcode/{i[0]}.qr.png", "wb") as Q:
             Q.write(qr_code.content)
-
+        logger.debug("Created QRcode for %s",i[0])
+    logger.info("Created QRs for all")
 
 if __name__ == "__main__":
+    setup_logging(logging.DEBUG)
     data = parse_data(sys.argv[1])
     generate__vcards(data)
     generate_qr_code(data)
