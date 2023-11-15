@@ -1,14 +1,22 @@
-# Visiting Card Generator
+# HR Management
 
-## Description
-This Python script reads data from a CSV file and generates virtual visiting card files from that data.
-
-## Requirments
-- Python 
+This Python script provides functions for processing employee data from a CSV file, generating vCard files for each employee, and generating QR codes containing their information.
 
 ## Usage
-1. Download the Python script to your local machine.
-2. Prepare a CSV file with contact information in the following format:
-   - The CSV file have the following columns: Last Name, First Name, Designation, Email, and Phone.
-3. And this script will provide you with a `txt` file containing a virtual visiting card
 
+python vcard.py <filename>
+
+Replace `<filename>` with the actual filename of the CSV file containing employee data.
+
+## Functions
+
+The script includes the following functions:
+
+* `parse_data()`: Parses the CSV file and returns a list of employee data.
+* `generate_vcard_content()`: Generates the vCard content for a single employee.
+* `generate__vcards()`: Generates vCards for all employees in the provided data list.
+* `generate_qr_code()`: Generates QR codes containing the email addresses of all employees in the provided data list.
+
+
+
+This will create directories named `vcards` and `qrcode` and save the generated vCards and QR codes in these directories.
