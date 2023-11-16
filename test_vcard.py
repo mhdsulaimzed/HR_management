@@ -8,14 +8,15 @@ def test_parsed_data():
 
 def test_getvcard():
     lname, fname, designation, email, phone = ["Warren","Tammy","Information officer","tammy.warre@romero.org","(794)913-7421"]
-    assert generate_vcard_content(lname, fname, designation, email, phone) == """BEGIN:VCARD
+    address = "Hamon technologies"
+    assert generate_vcard_content(lname, fname, designation, email, phone ,address) == """BEGIN:VCARD
 VERSION:2.1
 N:Warren;Tammy
 FN:Tammy Warren
 ORG:Authors, Inc.
 TITLE:Information officer
 TEL;WORK;VOICE:(794)913-7421
-ADR;WORK:;;100 Flat Grape Dr.;Fresno;CA;95555;United States of America
+ADR;WORK:;;Hamon technologies
 EMAIL;PREF;INTERNET:tammy.warre@romero.org
 REV:20150922T195243Z
 END:VCARD

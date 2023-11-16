@@ -34,14 +34,30 @@ def parse_args():
     parser = argparse.ArgumentParser(
         prog="vcard.py",
         description="Generates Vcards and Qr codes for employees in csv files as vcf and png format respectively",
-        epilog="use these options to doto specific fuctions as  written below",
+        epilog="use these options to do specific fuctions as  written above",
     )
-    parser.add_argument("filename")
-    parser.add_argument("-v", "--verbose", help="print out detailed logs", action="store_true")
-    parser.add_argument( "-a", "--all" , help ="Print both qr and vcard file" ,action="store_true" ,default=False)
-    parser.add_argument("-s","--size", help="Add custom size between 100 and 500" ,type=int ,default=300)
-    parser.add_argument("-ad","--address",help="Add new address",type=str, default="100 Flat Grape Dr.;Fresno;CA;95555;United States of America")
-
+    parser.add_argument("filename", help="name of the csv file as input, this is *required")
+    parser.add_argument(
+        "-v", "--verbose", help="print out detailed logs", action="store_true"
+    )
+    parser.add_argument(
+        "-a",
+        "--all",
+        help="Print both qr and vcard file",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "-s", "--size", help="Add custom size between 100 and 500", default=300
+    )
+    parser.add_argument(
+        "-ad",
+        "--address",
+        help="Add new address",
+        type=str,
+        default="100 Flat Grape Dr.;Fresno;CA;95555;United States of America",
+    )
+    parser.add_argument()
 
     args = parser.parse_args()
     return args
@@ -57,7 +73,7 @@ def parse_data(filename):
     return datalist
 
 
-def generate_vcard_content(lname, fname, designation,email, phone,address):
+def generate_vcard_content(lname, fname, designation, email, phone, address):
     return f"""BEGIN:VCARD
 VERSION:2.1
 N:{lname};{fname}
@@ -72,21 +88,26 @@ END:VCARD
 """
 
 
-def generate__vcards(data,address):
+def generate__vcards(data, address):
     os.mkdir("vcards")
     for i in data:
         lname, fname, designation, email, phone = i
         with open(f"vcards/{lname}.vcf", "w") as d:
-            d.write(generate_vcard_content(lname, fname, designation, email, phone,address))
+            d.write(
+                generate_vcard_content(lname, fname, designation, email, phone, address)
+            )
         logger.debug("Created vcard for %s ", lname)
     logger.info("Created all vcards")
 
 
-def generate_qr_code(data,dimension):
+def generate_qr_code(data, dimension):
     os.mkdir("qrcode")
-    
+    print(type(dimension))
+
     for i in data:
-        qr_code = requests.get(f"https://chart.googleapis.com/chart?cht=qr&chs={dimension}x{dimension}&chl={i}")
+        qr_code = requests.get(
+            f"https://chart.googleapis.com/chart?cht=qr&chs={dimension}x{dimension}&chl={i}"
+        )
 
         with open(f"qrcode/{i[0]}.qr.png", "wb") as Q:
             Q.write(qr_code.content)
@@ -96,25 +117,24 @@ def generate_qr_code(data,dimension):
 
 def main():
     args = parse_args()
-    dimension=args.size
-    address=args.address
+    dimension = args.size
+    address = args.address
+
     if args.verbose:
-    
         setup_logging(logging.DEBUG)
     else:
         setup_logging(logging.INFO)
 
     file = args.filename
     data = parse_data(file)
-    
-    generate__vcards(data,address)
+
+    generate__vcards(data, address)
     if args.all:
-        generate_qr_code(data,dimension)
+        if not dimension.isnumeric() or int(dimension) > 500:
+            logger.error("size must be an integer between 100 - 500")
+        else:
+            generate_qr_code(data, dimension)
 
-    
 
-    
 if __name__ == "__main__":
     main()
-
-
