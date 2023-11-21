@@ -6,6 +6,7 @@ import csv
 import logging
 import os
 import requests
+from colorama import Back,Style
 
 
 logger = None
@@ -72,7 +73,8 @@ def parse_args():
 
     parser_employee = subparser.add_parser("employee",help = "Get the employee detail")
 
-    parser_employee.add_argument("-e", "--employee", help=" specifies the employee id')", type=int)
+    parser_employee.add_argument("-e", "--employee", help=" specifies the employee id", type=int)
+    parser_employee.add_argument("-b", "--db", help="Specify database name ", type=str)
 
     args = parser.parse_args()
     return args
@@ -227,17 +229,24 @@ def load_leave_employee(dbname,user):
     connection.close()
     logger.info(" Inserted leaves into table leave_employee")
 
-def fetch_leave(dbname,user,emp_id):
+def fetch_employee_details(dbname,user,emp_id):
     connection = psycopg2.connect(f"dbname={dbname} user={user}")
     curs = connection.cursor()
     curs.execute(
-         """SELECT leave_date
+         """SELECT count(leave_date)
             FROM leave_table
             WHERE employee_id = %s ;""",((emp_id),)
     )
+    leaves_counts = curs.fetchall()
+    
+    curs.execute(
+        """ SELECT * FROM employees WHERE s_no = %s
+""",((emp_id),))
+    
+
     tup_datas = curs.fetchall()
     l_data = []
-    print(tup_datas)
+    
     for i in tup_datas:
        l_data.append(list(i))
 
@@ -245,7 +254,7 @@ def fetch_leave(dbname,user,emp_id):
     curs.close()
     connection.close()
     logger.info(f"Fetched all datas from employees table in {dbname} database")
-    return l_data
+    return list(leaves_counts[0]),l_data[0]
 
 
 def main():
@@ -298,12 +307,21 @@ def main():
 
     if args.subcommand == "employee":
         dbname = args.db
-        emp_id = args.leave
-        print(emp_id)
-        dates = fetch_leave(dbname,user,emp_id)
-        print("done")
-        for i in range(len(dates)):
-            print(dates[i])
+        emp_id = args.employee
+        
+        c_dates,details = fetch_employee_details(dbname,user,emp_id)
+        total_leaves = 5
+        leave_remaining = total_leaves - c_dates[0]
+       # print("---------------------------------------------------------------------------------------------")
+        print(Back.GREEN+f"""Employee's id :{details[0]} \n
+              Employee's name:{details[1]}{details[2]} \n
+              Designation : {details[3]} \n
+              email: {details[4]} \n
+              phone : {details[5]} \n
+              Company address : {details[6]} \n
+              Leaves Remaining : {leave_remaining}\n""")
+        print(Style.RESET_ALL)
+        
 
         
     
@@ -313,3 +331,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
