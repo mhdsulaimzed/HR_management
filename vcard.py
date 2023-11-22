@@ -9,6 +9,7 @@ import requests
 from colorama import Back,Style
 
 
+
 logger = None
 
 
@@ -133,7 +134,7 @@ def generate_qrcode(dimension, i):
     return qr_code
 
 
-def create__vcards(data):
+def create_vcards(data):
     os.mkdir("vcards")
     for i in data:
         lname, fname, designation, email, phone, address = i
@@ -254,7 +255,11 @@ def fetch_employee_details(dbname,user,emp_id):
     curs.close()
     connection.close()
     logger.info(f"Fetched all datas from employees table in {dbname} database")
-    return list(leaves_counts[0]),l_data[0]
+
+    total_leaves = 5
+    laeve_count = list(leaves_counts[0])
+    leave_remaining = total_leaves - leaves_counts[0]
+    return leave_remaining,l_data[0]
 
 
 def main():
@@ -292,7 +297,7 @@ def main():
         dbname = args.db
         
         data = fetch_from_db(dbname ,user)
-        create__vcards(data)
+        create_vcards(data)
 
     if args.subcommand == "qrcode":
         dbname = args.db
@@ -309,12 +314,11 @@ def main():
         dbname = args.db
         emp_id = args.employee
         
-        c_dates,details = fetch_employee_details(dbname,user,emp_id)
-        total_leaves = 5
-        leave_remaining = total_leaves - c_dates[0]
+        leave_remaining,details = fetch_employee_details(dbname,user,emp_id)
+        
        # print("---------------------------------------------------------------------------------------------")
-        print(Back.GREEN+f"""Employee's id :{details[0]} \n
-              Employee's name:{details[1]}{details[2]} \n
+        print(Back.GREEN+f"""Employee's id : {details[0]} \n
+              Employee's name: {details[1]} {details[2]} \n
               Designation : {details[3]} \n
               email: {details[4]} \n
               phone : {details[5]} \n
