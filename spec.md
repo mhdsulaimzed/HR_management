@@ -18,44 +18,70 @@ The purpose of this code is to:
 2. Create a database in PostgreSQL.
 3. Load the employee details into the database.
 4. Generate virtual visiting cards and QR code image files for each person.
+5. Get all details of about employee of perticular id 
 
 ## Input
 
 The script is invoked using the following command-line format:
 
 ```bash
-python3 vcard.py <action> [options]
+python3 vcard.py <subcommand> [options]
 ```
+### commmon option
 
-Available actions:
+- `-v, --verbose` (optional): Print verbose logs.
+
+Available Subcommand:
 
 - `createdb`: Create a PostgreSQL database.
-- `load`: Load CSV file data into the database.
+    Options:
+        - `-b, --db`: Give a name for database name.
+
+- `loadcsv`: Load CSV file data into the database.
+    Options:
+   
+    - `-b, --db`: Specify the database name.
+    - `-l, --load`: Specify the CSV file name/path .
+    - `-d, --address` (optional): Add custom address for the vCard; default value can be set.
+
+
 - `vcard`: Generate virtual visiting cards.
+    Options:
+
+    - `-b, --db`: Specify the database name.
+
 - `qrcode`: Generate QR codes.
+    Options:
 
-Options:
+    - `-b, --db`: Specify the database name.
+    - `-s, --size` (optional): Size of the QR code to generate (default: 300, only with the `qrcode` action).
 
-- `-b, --db`: Specify the database name.
-- `-l, --load`: Specify the CSV file (only with the `load` action).
-- `-t, --table`: Specify the table name (only with `load`, `vcard`, and `qrcode` actions).
-- `-v, --verbose` (optional): Print verbose logs.
-- `-s, --size` (optional): Size of the QR code to generate (default: 300, only with the `qrcode` action).
-- `-d, --address` (optional): Add custom address for the vCard; default value can be set (only with the `load` action).
+
+- `employee`: Get details and leave remaining of an employee
+    Options:
+
+    - `-b, --db`: Specify the database name.
+    - `-e  ---employee`Specifying the employee id
+
 
 ## Output
 
-### `createdb` and `load` Actions
+### `createdb` and `load` Subcommands
 
 Create a PostgreSQL database and load the CSV file into the database with a user-input table name.
 
-### `vcard` and `qrcode` Actions
+### `vcard` and `qrcode` Subcommands
 
 Create directories named `vcards` and `qrcode` and save the generated vCards and QR codes in these directories. Files will be named with the employee's last name in VCF and PNG formats.
 
+
+### employee
+
+Retrives employee details and leave remaining of perticular employee with the passed employee id
+
 ## Usage
 
-Run the script through the command line by choosing one of the actions: `createdb`, `load`, `vcard`, or `qrcode`. Perform tasks such as creating a database, loading data from the employee's CSV file into the database, and generating vCards and QR codes.
+Run the script through the command line by choosing one of the subcommand: `createdb`, `load`, `vcard`,`employee` or `qrcode`. Perform tasks such as creating a database, loading data from the employee's CSV file into the database, and generating vCards and QR codes.
 
 
 
