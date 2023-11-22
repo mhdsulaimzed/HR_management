@@ -212,7 +212,8 @@ def create_leave_table(dbname,user):
         f"""CREATE TABLE leave_table(
                        s_no BIGSERIAL PRIMARY KEY,
                        leave_date DATE,
-                       employee_id INTEGER REFERENCES employees(s_no) );"""
+                       employee_id INTEGER REFERENCES employees(s_no) 
+                       UNIQUE (employee_id,leave_date));"""
     )
 
     connnection.commit()
