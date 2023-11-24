@@ -1,6 +1,7 @@
-CREATE TABLE designation(id SERIAL PRIMARY KEY,
-                        title VARCHAR(50),
-                        total_leaves INTEGER );
+CREATE TABLE designation(id SERIAL,
+                        title VARCHAR(150) PRIMARY KEY,
+                        total_leaves INTEGER ,
+                        UNIQUE(id,title));
 
 INSERT INTO designation (title,total_leaves) VALUES ('Staff Engineer',20),('Senior Engineer',18),('Junior Engineer',12),('Tech Lead',12),('Project manager',12);
 

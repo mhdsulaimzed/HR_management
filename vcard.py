@@ -10,9 +10,7 @@ import requests
 from colorama import Back, Style
 
 
-
 logger = None
-
 
 
 def configure_logger(args):
@@ -94,13 +92,23 @@ def parse_args():
         default=300,
     )
 
-    parser_employee = subparser.add_parser("leavemp", help="Get the employee detail")
+    parser_employee = subparser.add_parser("leavemp", help="load leaves of employees")
 
-
-    parser_employee.add_argument("-b", "--db", help="Specify database name ", type=str,default="hr1")
+    parser_employee.add_argument(
+        "-b", "--db", help="Specify database name ", type=str, default="hr1"
+    )
     parser_employee.add_argument("-e", "--empid", help="Specify employee id ", type=str)
-    parser_employee.add_argument("-d", "--date", help="Specify date ", type=str,default=todays_date)
-    parser_employee.add_argument("-r", "--reason", help="Specify reason of leave ", type=str,default="Not mentioned")
+    parser_employee.add_argument(
+        "-d", "--date", help="Specify date ", type=str, default=todays_date
+    )
+    parser_employee.add_argument(
+        "-r",
+        "--reason",
+        help="Specify reason of leave ",
+        type=str,
+        default="Not mentioned",
+    )
+    parser_export = subparser.add_parser("export", help="Get the employee detail")
 
 
 
@@ -108,11 +116,11 @@ def parse_args():
     return args
 
 
-def employee_exist(args,user):
+def employee_exist(args, user):
     connection = psycopg2.connect(f"dbname={args.db} user={user}")
     curs = connection.cursor()
     query = "SELECT EXISTS (SELECT 1 FROM employees WHERE s_no = %s)"
-    curs.execute(query,(args.empid,))
+    curs.execute(query, (args.empid,))
     exist = curs.fetchone()[0]
     if not exist:
         logger.error(f"No employee with id {args.empid}")
@@ -131,7 +139,6 @@ def parse_data(args):
         for i in detail:
             datalist.append(i)
 
-
     return datalist
 
 
@@ -142,7 +149,8 @@ def fetch_from_db(dbname, user):
         curs.execute(
             f"""SELECT first_name,last_name,designation,email,phone,company_address
                          FROM
-                         employees """)
+                         employees """
+        )
         data = [list(row) for row in curs.fetchall()]
         connection.commit()
         curs.close()
@@ -212,7 +220,7 @@ def create_tables(args, user):
     dbname = args.db
     connnection = psycopg2.connect(f"dbname={dbname} user={user}")
     curs = connnection.cursor()
-    query = open('tables.sql',"r")
+    query = open("tables.sql", "r")
     curs.execute(query.read())
     connnection.commit()
     curs.close()
@@ -220,9 +228,8 @@ def create_tables(args, user):
     logger.info(f"Table employees created in {dbname} database")
 
 
-def load_csv_into_db( args,data,user):
-
-    try:    
+def load_csv_into_db(args, data, user):
+    try:
         connection = psycopg2.connect(f"dbname={args.db} user={user}")
         curs = connection.cursor()
         fname, lname, designation, email, phone = data
@@ -238,46 +245,51 @@ def load_csv_into_db( args,data,user):
         connection.close()
         logger.debug(f" Inserted datas of {fname} into table employees ")
 
-
     except psycopg2.errors.DuplicateTable as e:
         logger.error(f"Table already exists: {e}")
-    
+
     except psycopg2.Error as e:
         logger.error(f"Error {e}")
 
 
-
-def load_leave_employee(args,user):
-    
-    
-    try: 
+def load_leave_employee(args, user):
+    try:
         connection = psycopg2.connect(f"dbname={args.db} user={user}")
         curs = connection.cursor()
-        curs.execute("SELECT designation FROM employees WHERE s_no = %s ",((args.empid,)))
+        curs.execute(
+            "SELECT designation FROM employees WHERE s_no = %s ", ((args.empid,))
+        )
         designation = curs.fetchone()
         print(designation)
         if designation is not None:
             designation = designation[0]
-            
-            curs.execute("SELECT total_leaves FROM designation WHERE id = %s ",((designation,)))
+
+            curs.execute(
+                "SELECT total_leaves FROM designation WHERE id = %s ", ((designation,))
+            )
             total_leave = curs.fetchone()
             if total_leave is not None:
                 total_leave = total_leave[0]
-                
-                curs.execute("SELECT count(leave_date) FROM leave_table WHERE employee_id = %s ",((args.empid,)))
+
+                curs.execute(
+                    "SELECT count(leave_date) FROM leave_table WHERE employee_id = %s ",
+                    ((args.empid,)),
+                )
                 leave_count = curs.fetchone()
                 if leave_count is not None:
-                    leave_count =leave_count[0]
+                    leave_count = leave_count[0]
 
-                    if leave_count<total_leave:
-                    
-                        curs.execute("INSERT INTO leave_table (leave_date, employee_id,reason) VALUES (%s,%s,%s)",(args.date,args.empid,args.reason))
+                    if leave_count < total_leave:
+                        curs.execute(
+                            "INSERT INTO leave_table (leave_date, employee_id,reason) VALUES (%s,%s,%s)",
+                            (args.date, args.empid, args.reason),
+                        )
                         logger.info("Leave added")
                     else:
                         logger.warning("Maximum leave attained")
                 else:
                     logger.error("Error while fetching leave count")
-            else: 
+            else:
                 logger.error("Error while fetching total_leave")
         else:
             logger.error("Error while fetching designation")
@@ -289,6 +301,26 @@ def load_leave_employee(args,user):
         logger.error(f"Error {e}")
 
 
+def join_tables(args,user):
+    try:
+        connection = psycopg2.connect(f"dbname={args.dbname} user={user}")
+        curs = connection.cursor()
+        curs.execute(
+            f"""  """
+        )
+        data = curs.fetchall()
+        connection.commit()
+        curs.close()
+        connection.close()
+        logger.info(f"Joined")
+        return data
+    except psycopg2.Error as e:
+        logger.error(f"Error {e}")
+
+
+def export_employee_details(data):
+        pass
+    
 
 
 def main():
@@ -303,14 +335,12 @@ def main():
         create_database(dbname, user)
 
     if args.subcommand == "loadcsv":
+        datas = parse_data(args)
+        create_tables(args, user)
 
-            datas = parse_data(args)
-            create_tables(args, user)
-
-            for i in range(len(datas)):
-                load_csv_into_db(args, datas[i], user)
-            logger.info(f"Loaded all datas into database")
-
+        for i in range(len(datas)):
+            load_csv_into_db(args, datas[i], user)
+        logger.info(f"Loaded all datas into database")
 
     if args.subcommand == "vcard":
         print(user)
@@ -331,7 +361,11 @@ def main():
             create_qrcode_images(data, dimension)
 
     if args.subcommand == "leavemp":
-        load_leave_employee(args,user)
+        load_leave_employee(args, user)
+    
+    
+    if args.subcommand == "export":
+
 
 
 if __name__ == "__main__":
