@@ -37,7 +37,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(
         prog="vcard.py",
-        description="""
+        description="""This a program for managing Hr operations
 
         """,
         epilog="use these options to do specific fuctions as  written above",
