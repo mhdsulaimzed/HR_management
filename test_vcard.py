@@ -1,4 +1,4 @@
-from vcard import parse_data,generate_vcard_content
+from hr import parse_data,generate_vcard_content
 
 def test_parsed_data():
     file = "test_files/test_sample.csv"

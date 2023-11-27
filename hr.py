@@ -109,6 +109,9 @@ def parse_args():
         default="Not mentioned",
     )
     parser_export = subparser.add_parser("export", help="Get the employee detail")
+    parser_export.add_argument(
+        "-b", "--db", help="Specify database name ", type=str, default="hr1"
+    )
 
 
 
@@ -303,23 +306,61 @@ def load_leave_employee(args, user):
 
 def join_tables(args,user):
     try:
-        connection = psycopg2.connect(f"dbname={args.dbname} user={user}")
+        connection = psycopg2.connect(f"dbname={args.db} user={user}")
         curs = connection.cursor()
         curs.execute(
-            f"""  """
+            """SELECT
+  e.s_no,
+  e.first_name,
+  e.last_name,
+  d.title,
+  d.total_leaves,
+  e.email,
+  e.phone,
+  e.company_address,
+  COUNT(DISTINCT l.leave_date) AS leave_taken,
+  d.total_leaves - COUNT(DISTINCT l.leave_date) AS leave_remaining
+FROM employees e
+JOIN designation d ON e.designation = d.id
+LEFT JOIN leave_table l ON e.s_no = l.employee_id
+GROUP BY e.s_no, e.first_name, e.last_name, d.title, d.total_leaves, e.email, e.phone, e.company_address;
+"""
         )
         data = curs.fetchall()
         connection.commit()
         curs.close()
         connection.close()
-        logger.info(f"Joined")
+        logger.info(f"Joined tables and data fetched")
         return data
     except psycopg2.Error as e:
         logger.error(f"Error {e}")
 
 
 def export_employee_details(data):
-        pass
+    
+        with open('employees_summary.csv', 'w', newline='') as csvfile:
+        # Create a CSV writer object
+            writer = csv.writer(csvfile)
+
+        # Write the header row
+            writer.writerow([
+            'Employee ID',
+            'First Name',
+            'Last Name',
+            'Designation',
+            'Total Leaves',
+            'Email',
+            'Phone',
+            'Company Address',
+            'Leaves Taken',
+            'Leaves Remaining'
+        ])
+
+        # Write the data rows
+            for row in data:
+                writer.writerow(row)
+                logger.debug("Writed row on csv file")
+        logger.info("Exported ")
     
 
 
@@ -365,8 +406,11 @@ def main():
     
     
     if args.subcommand == "export":
+        
+        data = join_tables(args,user)
+        export_employee_details(data)
 
 
 
 if __name__ == "__main__":
-    main()
+    main() 
