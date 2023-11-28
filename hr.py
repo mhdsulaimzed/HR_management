@@ -48,7 +48,7 @@ def parse_args():
     # database command
     parser_createdb = subparser.add_parser("createdb", help="create a database")
     parser_createdb.add_argument(
-        "-b", "--db", help=" give a name for a new database", type=str
+        "-b", "--db", help="Database name", type=str
     )
 
     # loading csv into database
