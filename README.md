@@ -1,22 +1,49 @@
-# HR Management
 
-This Python script provides functions for processing employee data from a CSV file, generating vCard files for each employee, and generating QR codes containing their information.
+## HR Operations Management System
+- Overview
+This  Python program manages HR operations, including creating a database, loading CSV data, generating vCards, managing employee leaves, and exporting employee details.
 
-## Usage
+### Dependencies
+    1. Python 
+    2. psycopg2
+    3. pytest
 
-python vcard.py <filename>
+### Features
+-   Database Creation: Creates a PostgreSQL database to store employee information.
 
-Replace `<filename>` with the actual filename of the CSV file containing employee data.
+-   CSV Data Import: Imports CSV data into the database, populating the employees table.
 
-## Functions
+-   vCard Generation: Generates vCards for all employees, containing their essential contact details.
 
-The script includes the following functions:
+-   QR Code Generation: Creates QR codes for each employee's ID, enabling easy access to their information.
 
-* `parse_data()`: Parses the CSV file and returns a list of employee data.
-* `generate_vcard_content()`: Generates the vCard content for a single employee.
-* `generate__vcards()`: Generates vCards for all employees in the provided data list.
-* `generate_qr_code()`: Generates QR codes containing the email addresses of all employees in the provided data list.
+-   Employee Leave Management: Adds leaves taken by employees to the database, maintaining leave limits.
 
+-   Employee Details Export: Exports consolidated employee details, including leave information, to a CSV file.
 
 
-This will create directories named `vcards` and `qrcode` and save the generated vCards and QR codes in these directories.
+
+Subcommands:
+
+The script supports various subcommands for specific tasks:
+
+`createdb`: Creates a new PostgreSQL database.
+
+`loadcsv`: Loads CSV data into the database.
+
+`vcard`: Generates vCards for all employees.
+
+`qrcode`: Generates QR codes for all employees.
+
+`leavemp`: Adds leaves for an employee.
+
+`export`: Exports employee details to a CSV file.
+
+
+
+## How to Run?
+
+```bash
+
+```
+

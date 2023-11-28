@@ -81,12 +81,12 @@ def parse_args():
     parser_vcard = subparser.add_parser("vcard", help="generate vcards")
     parser_vcard.add_argument("-b", "--db", help="Specify database name ", type=str)
 
-    parser_qrcode = subparser.add_parser("qrcode", help="generate qrcodes")
+    parser_qrcode = subparser.add_parser("qrcode", help="generate qrcode")
     parser_qrcode.add_argument("-b", "--db", help="Specify database name ", type=str)
     parser_qrcode.add_argument(
         "-s",
         "--size",
-        help="Specifies a custom size between 100 and 500 (for the 'qrcode' action)",
+        help="Specifies a custom size between 100 and 500 (for the 'qrcode' command)",
         default=300,
     )
 
@@ -147,7 +147,7 @@ def fetch_from_db(args, user):
         connection.commit()
         curs.close()
         connection.close()
-        logger.info(f"Fetched all datas from employees table in {args.db} database")
+        logger.info(f"Fetched all data from employees table in {args.db} database")
         return data
     except psycopg2.OperationalError as e:
         logger.error(e)
@@ -374,10 +374,10 @@ def main():
         create_database(args, user)
 
     if args.subcommand == "loadcsv":
-        datas = parse_data(args)
+        data = parse_data(args)
         create_tables(args, user)
-        for i in range(len(datas)):
-            load_csv_into_db(args, datas[i], user)
+        for i in range(len(data)):
+            load_csv_into_db(args, data[i], user)
 
     if args.subcommand == "vcard":
         data = fetch_from_db(args, user)

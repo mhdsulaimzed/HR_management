@@ -1,6 +1,6 @@
 # OBJECTIVE :
  Python script that converts data from a CSV file into vCard Virtual Visiting Card files. 
- Create a Python script that converts data from a CSV file into vCard Virtual Visiting Card files.
+ Create a Python script that converts data from a CSV file into vCard Virtual Visiting Card files and fetch data from databases and make an employee sumary
 
 ## Purpose
 
@@ -10,7 +10,7 @@ The purpose of this code is to:
 2. Create a database in PostgreSQL.
 3. Load the employee details into the database.
 4. Generate virtual visiting cards and QR code image files for each person
-5. Get all details of about employee of perticular id 
+5. Get all details of about employee of particular id 
 6. Add leaves for employees and the default date must be today's
 
 ## Input
@@ -18,9 +18,9 @@ The purpose of this code is to:
 The script is invoked using the following command-line format:
 
 ```bash
-python3 vcard.py <subcommand> [options]
+python3 hr.py <subcommand> [options]
 ```
-### commmon option
+### Commmon option
 
 - `-v, --verbose` (optional): Print verbose logs.
 
