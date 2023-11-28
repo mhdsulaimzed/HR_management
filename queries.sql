@@ -1,5 +1,5 @@
-    CREATE TABLE designation(id SERIAL,
-                            title VARCHAR(150) PRIMARY KEY,
+    CREATE TABLE designation(id SERIAL PRIMARY KEY,
+                            title VARCHAR(150) ,
                             total_leaves INTEGER ,
                             UNIQUE(id,title));
 
@@ -15,7 +15,7 @@
                             phone VARCHAR(50), 
                         company_address VARCHAR(100) );
 
-    CREATE TABLE leave_table(
+    CREATE TABLE employee_leave(
                         s_no BIGSERIAL PRIMARY KEY,
                         leave_date DATE,
                         employee_id INTEGER REFERENCES employees(s_no),

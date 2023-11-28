@@ -7,7 +7,7 @@ import datetime
 import logging
 import os
 import requests
-from colorama import Back, Style
+import sys
 
 
 logger = None
@@ -36,11 +36,9 @@ def parse_args():
     todays_date = str(datetime.date.today())
 
     parser = argparse.ArgumentParser(
-        prog="vcard.py",
-        description="""This a program for managing Hr operations
-
-        """,
-        epilog="use these options to do specific fuctions as  written above",
+        prog="hr.py",
+        description="This a program for managing Hr operations",
+        epilog="use these subcommands to do specific operations",
     )
 
     parser.add_argument(
@@ -48,17 +46,16 @@ def parse_args():
     )
 
     subparser = parser.add_subparsers(dest="subcommand", help="subcommand help")
-    """subcommand for createdb"""
-    parser_createbd = subparser.add_parser("createdb", help="create a database")
-    parser_createbd.add_argument(
-        "-b",
-        "--db",
-        help=" Specify database name give a name for a new database",
-        type=str,
+
+    # database command
+    parser_createdb = subparser.add_parser("createdb", help="create a database")
+    parser_createdb.add_argument(
+        "-b", "--db", help=" give a name for a new database", type=str
     )
 
+    # loading csv into database
     parser_load = subparser.add_parser(
-        "loadcsv", help="load csv file and employee leaves into database"
+        "loadcsv", help="insert data from file into employee table in database "
     )
     parser_load.add_argument(
         "-l",
@@ -71,19 +68,20 @@ def parse_args():
         "--db",
         help=" Specify database name give a name for a new database",
         type=str,
+        default="hr1",
     )
     parser_load.add_argument(
         "-d",
         "--address",
-        help="Add new address",
+        help="Add a new address",
         type=str,
         default="100 Flat Grape Dr.;Fresno;CA;95555;United States of America",
     )
-
-    parser_vcard = subparser.add_parser("vcard", help="generate vcard")
+    # commad for creating vcards
+    parser_vcard = subparser.add_parser("vcard", help="generate vcards")
     parser_vcard.add_argument("-b", "--db", help="Specify database name ", type=str)
 
-    parser_qrcode = subparser.add_parser("qrcode", help="generate qr  code")
+    parser_qrcode = subparser.add_parser("qrcode", help="generate qrcodes")
     parser_qrcode.add_argument("-b", "--db", help="Specify database name ", type=str)
     parser_qrcode.add_argument(
         "-s",
@@ -92,62 +90,53 @@ def parse_args():
         default=300,
     )
 
-    parser_employee = subparser.add_parser("leavemp", help="load leaves of employees")
+    parser_leave_emp = subparser.add_parser("leavemp", help="add leaves for employees")
 
-    parser_employee.add_argument(
+    parser_leave_emp.add_argument(
         "-b", "--db", help="Specify database name ", type=str, default="hr1"
     )
-    parser_employee.add_argument("-e", "--empid", help="Specify employee id ", type=str)
-    parser_employee.add_argument(
+    parser_leave_emp.add_argument(
+        "-e", "--empid", help="Specify employee id ", type=str
+    )
+    parser_leave_emp.add_argument(
         "-d", "--date", help="Specify date ", type=str, default=todays_date
     )
-    parser_employee.add_argument(
+    parser_leave_emp.add_argument(
         "-r",
         "--reason",
         help="Specify reason of leave ",
         type=str,
         default="Not mentioned",
     )
-    parser_export = subparser.add_parser("export", help="Get the employee detail")
+    parser_export = subparser.add_parser(
+        "export", help="Get the employee detail as csv file"
+    )
     parser_export.add_argument(
         "-b", "--db", help="Specify database name ", type=str, default="hr1"
     )
-
-
 
     args = parser.parse_args()
     return args
 
 
-def employee_exist(args, user):
-    connection = psycopg2.connect(f"dbname={args.db} user={user}")
-    curs = connection.cursor()
-    query = "SELECT EXISTS (SELECT 1 FROM employees WHERE s_no = %s)"
-    curs.execute(query, (args.empid,))
-    exist = curs.fetchone()[0]
-    if not exist:
-        logger.error(f"No employee with id {args.empid}")
-        exit()
-    print(exist)
-
-    curs.close()
-    connection.close()
-
-
 def parse_data(args):
     filename = args.load
     datalist = []
-    with open(filename, "r") as data:
-        detail = csv.reader(data)
-        for i in detail:
-            datalist.append(i)
-
-    return datalist
-
-
-def fetch_from_db(dbname, user):
     try:
-        connection = psycopg2.connect(f"dbname={dbname} user={user}")
+        with open(filename, "r") as data:
+            detail = csv.reader(data)
+            for i in detail:
+                datalist.append(i)
+
+        return datalist
+    except FileNotFoundError as e:
+        logger.error("Error %s", (e,))
+        sys.exit(-1)
+
+
+def fetch_from_db(args, user):
+    try:
+        connection = psycopg2.connect(f"dbname={args.db} user={user}")
         curs = connection.cursor()
         curs.execute(
             f"""SELECT first_name,last_name,designation,email,phone,company_address
@@ -158,10 +147,11 @@ def fetch_from_db(dbname, user):
         connection.commit()
         curs.close()
         connection.close()
-        logger.info(f"Fetched all datas from employees table in {dbname} database")
+        logger.info(f"Fetched all datas from employees table in {args.db} database")
         return data
-    except psycopg2.Error as e:
-        logger.error(f"Error {e}")
+    except psycopg2.OperationalError as e:
+        logger.error(e)
+        sys.exit(-1)
 
 
 def generate_vcard_content(lname, fname, designation, email, phone, address):
@@ -197,38 +187,48 @@ def create_vcards(data):
     logger.info("Created all vcards")
 
 
-def create_qrcode_images(data, dimension):
-    os.mkdir("qrcode")
-    print(type(dimension))
+def create_qrcode_images(data, args):
+    if type(args.size) != int or int(args.size) > 500:
+        logger.error("size must be an integer between 100 - 500")
+    else:
+        if not os.path.exists("qrcode"):
+            os.mkdir("qrcode")
+            for i in data:
+                with open(f"qrcode/{i[0]}.qr.png", "wb") as Q:
+                    qr_code = generate_qrcode(args.size, i)
+                    Q.write(qr_code.content)
+                logger.debug("Created QRcode for %s", i[0])
+            logger.info("Created QRs for all")
 
-    for i in data:
-        with open(f"qrcode/{i[0]}.qr.png", "wb") as Q:
-            qr_code = generate_qrcode(dimension, i)
-            Q.write(qr_code.content)
-        logger.debug("Created QRcode for %s", i[0])
-    logger.info("Created QRs for all")
 
-
-def create_database(dbname, user):
-    connection = psycopg2.connect(database="postgres", user=user)
-    curs = connection.cursor()
-    curs.execute("commit")
-    curs.execute("create database %s ;", (AsIs(dbname),))
-    curs.close()
-    connection.close()
-    logger.info("Database created")
+def create_database(args, user):
+    try:
+        connection = psycopg2.connect(database="postgres", user=user)
+        curs = connection.cursor()
+        curs.execute("commit")
+        curs.execute("create database %s ;", (AsIs(args.db),))
+        curs.close()
+        connection.close()
+        logger.info("Database created")
+    except psycopg2.errors.DuplicateDatabase as e:
+        logger.error("Error %s", e)
 
 
 def create_tables(args, user):
-    dbname = args.db
-    connnection = psycopg2.connect(f"dbname={dbname} user={user}")
-    curs = connnection.cursor()
-    query = open("tables.sql", "r")
-    curs.execute(query.read())
-    connnection.commit()
-    curs.close()
-    connnection.close()
-    logger.info(f"Table employees created in {dbname} database")
+    try:
+        dbname = args.db
+        connnection = psycopg2.connect(f"dbname={dbname} user={user}")
+        curs = connnection.cursor()
+        query = open("queries.sql", "r")
+        curs.execute(query.read())
+        connnection.commit()
+        curs.close()
+        connnection.close()
+        logger.info(f"Table employees created in {dbname} database")
+
+    except psycopg2.errors.DuplicateTable as e:
+        logger.error("Table already exists: %s", e)
+        sys.exit(-1)
 
 
 def load_csv_into_db(args, data, user):
@@ -236,6 +236,7 @@ def load_csv_into_db(args, data, user):
         connection = psycopg2.connect(f"dbname={args.db} user={user}")
         curs = connection.cursor()
         fname, lname, designation, email, phone = data
+
         curs.execute(
             f"""INSERT
                          INTO
@@ -243,13 +244,16 @@ def load_csv_into_db(args, data, user):
                           VALUES(%s,%s,%s,%s,%s,%s)""",
             (fname, lname, designation, email, phone, args.address),
         )
+
         connection.commit()
         curs.close()
         connection.close()
-        logger.debug(f" Inserted datas of {fname} into table employees ")
+        logger.debug(" Inserted datas of %s into table employees ", fname)
 
-    except psycopg2.errors.DuplicateTable as e:
-        logger.error(f"Table already exists: {e}")
+    except psycopg2.OperationalError as e:
+        logger.error("Error %s", e)
+    except psycopg2.errors.ForeignKeyViolation as e:
+        logger.warning("Foreign key violation: %s")
 
     except psycopg2.Error as e:
         logger.error(f"Error {e}")
@@ -257,54 +261,55 @@ def load_csv_into_db(args, data, user):
 
 def load_leave_employee(args, user):
     try:
-        connection = psycopg2.connect(f"dbname={args.db} user={user}")
-        curs = connection.cursor()
-        curs.execute(
-            "SELECT designation FROM employees WHERE s_no = %s ", ((args.empid,))
-        )
-        designation = curs.fetchone()
-        print(designation)
-        if designation is not None:
-            designation = designation[0]
+        with psycopg2.connect(f"dbname={args.db} user={user}") as connection:
+            with connection.cursor() as curs:
+                try:
+                    curs.execute(
+                        "SELECT designation FROM employees WHERE s_no = %s ",
+                        (args.empid,),
+                    )
+                    designation = curs.fetchone()[0]
+                except (TypeError, IndexError) as e:
+                    logger.error(f"Error while fetching designation: %s", (e,))
+                    raise  # for exiting the fun'
 
-            curs.execute(
-                "SELECT total_leaves FROM designation WHERE id = %s ", ((designation,))
-            )
-            total_leave = curs.fetchone()
-            if total_leave is not None:
-                total_leave = total_leave[0]
+                try:
+                    curs.execute(
+                        "SELECT total_leaves FROM designation WHERE id = %s ",
+                        (designation,),
+                    )
+                    total_leave = curs.fetchone()[0]
+                except (TypeError, IndexError) as e:
+                    logger.error(f"Error while fetching total_leave: %s", (e,))
+                    raise
 
-                curs.execute(
-                    "SELECT count(leave_date) FROM leave_table WHERE employee_id = %s ",
-                    ((args.empid,)),
-                )
-                leave_count = curs.fetchone()
-                if leave_count is not None:
-                    leave_count = leave_count[0]
+                try:
+                    curs.execute(
+                        "SELECT count(leave_date) FROM employee_leave WHERE employee_id = %s ",
+                        (args.empid,),
+                    )
+                    leave_count = curs.fetchone()[0]
+                except (TypeError, IndexError) as e:
+                    logger.error(f"Error while fetching leave count: %s", (e,))
+                    raise
 
+                try:
                     if leave_count < total_leave:
                         curs.execute(
-                            "INSERT INTO leave_table (leave_date, employee_id,reason) VALUES (%s,%s,%s)",
+                            "INSERT INTO employee_leave(leave_date, employee_id,reason) VALUES (%s,%s,%s)",
                             (args.date, args.empid, args.reason),
                         )
                         logger.info("Leave added")
                     else:
                         logger.warning("Maximum leave attained")
-                else:
-                    logger.error("Error while fetching leave count")
-            else:
-                logger.error("Error while fetching total_leave")
-        else:
-            logger.error("Error while fetching designation")
-        connection.commit()
-        curs.close()
-        connection.close()
+                except psycopg2.Error as e:
+                    logger.error("Error while inserting leave data: %s", e)
 
     except psycopg2.Error as e:
-        logger.error(f"Error {e}")
+        logger.error("Error: %s", e)
 
 
-def join_tables(args,user):
+def join_tables(args, user):
     try:
         connection = psycopg2.connect(f"dbname={args.db} user={user}")
         curs = connection.cursor()
@@ -322,7 +327,7 @@ def join_tables(args,user):
   d.total_leaves - COUNT(DISTINCT l.leave_date) AS leave_remaining
 FROM employees e
 JOIN designation d ON e.designation = d.id
-LEFT JOIN leave_table l ON e.s_no = l.employee_id
+LEFT JOIN employee_leave l ON e.s_no = l.employee_id
 GROUP BY e.s_no, e.first_name, e.last_name, d.title, d.total_leaves, e.email, e.phone, e.company_address;
 """
         )
@@ -333,84 +338,62 @@ GROUP BY e.s_no, e.first_name, e.last_name, d.title, d.total_leaves, e.email, e.
         logger.info(f"Joined tables and data fetched")
         return data
     except psycopg2.Error as e:
-        logger.error(f"Error {e}")
+        logger.error("Error %s", e)
 
 
 def export_employee_details(data):
-    
-        with open('employees_summary.csv', 'w', newline='') as csvfile:
-        # Create a CSV writer object
-            writer = csv.writer(csvfile)
+    with open("employees_summary.csv", "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(
+            [
+                "Employee ID",
+                "First Name",
+                "Last Name",
+                "Designation",
+                "Total Leaves",
+                "Email",
+                "Phone",
+                "Company Address",
+                "Leaves Taken",
+                "Leaves Remaining",
+            ]
+        )
 
-        # Write the header row
-            writer.writerow([
-            'Employee ID',
-            'First Name',
-            'Last Name',
-            'Designation',
-            'Total Leaves',
-            'Email',
-            'Phone',
-            'Company Address',
-            'Leaves Taken',
-            'Leaves Remaining'
-        ])
-
-        # Write the data rows
-            for row in data:
-                writer.writerow(row)
-                logger.debug("Writed row on csv file")
-        logger.info("Exported ")
-    
+        for row in data:
+            writer.writerow(row)
+            logger.debug("Writed row on csv file")
+    logger.info("Exported ")
 
 
 def main():
     args = parse_args()
     user = os.getenv("USERNAME")
-
     configure_logger(args)
 
     if args.subcommand == "createdb":
-        dbname = args.db
-
-        create_database(dbname, user)
+        create_database(args, user)
 
     if args.subcommand == "loadcsv":
         datas = parse_data(args)
         create_tables(args, user)
-
         for i in range(len(datas)):
             load_csv_into_db(args, datas[i], user)
-        logger.info(f"Loaded all datas into database")
 
     if args.subcommand == "vcard":
-        print(user)
-        dbname = args.db
-
-        data = fetch_from_db(dbname, user)
+        data = fetch_from_db(args, user)
         create_vcards(data)
 
     if args.subcommand == "qrcode":
-        dbname = args.db
-
-        dimension = args.size
-
-        if type(dimension) != int or int(dimension) > 500:
-            logger.error("size must be an integer between 100 - 500")
-        else:
-            data = fetch_from_db(dbname, user)
-            create_qrcode_images(data, dimension)
+        data = fetch_from_db(args, user)
+        create_qrcode_images(data, args)
 
     if args.subcommand == "leavemp":
         load_leave_employee(args, user)
-    
-    
+
     if args.subcommand == "export":
-        
-        data = join_tables(args,user)
+        data = join_tables(args, user)
         export_employee_details(data)
 
 
-
 if __name__ == "__main__":
-    main() 
+    main()
