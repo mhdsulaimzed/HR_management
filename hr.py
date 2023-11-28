@@ -53,7 +53,7 @@ def parse_args():
 
     # loading csv into database
     parser_load = subparser.add_parser(
-        "loadcsv", help="insert data from file into employee table in database ",description="Imports list of employees into the database from specified file '-l'"
+        "loadcsv", help="Imports employees from csv file",description="Imports employees from CSV file"
     )
     parser_load.add_argument(
         "-f",
