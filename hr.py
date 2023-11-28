@@ -351,10 +351,10 @@ def main():
 
     if args.subcommand == "createdb":
         create_database(args, user)
+        create_tables(args, user)
 
     if args.subcommand == "loadcsv":
         data = parse_data(args)
-        create_tables(args, user)
         for i in range(len(data)):
             load_csv_into_db(args, data[i], user)
 
