@@ -53,8 +53,7 @@ def parse_args():
         "loadcsv", help="Imports employees from csv file",description="Imports employees from CSV file"
     )
     parser_load.add_argument(
-        "-f",
-        "--file",
+        "load",
         help="Specifies the file name to be loaded ",
         type=str,
     )
