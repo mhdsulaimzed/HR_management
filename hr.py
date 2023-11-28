@@ -321,7 +321,8 @@ GROUP BY e.s_no, e.first_name, e.last_name, d.title, d.total_leaves, e.email, e.
 
 
 def export_employee_details(data):
-    with open("employees_summary.csv", "w", newline="") as csvfile:
+    fname = "employees_summary.csv"
+    with open(fname, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(
             [
@@ -341,7 +342,7 @@ def export_employee_details(data):
         for row in data:
             writer.writerow(row)
             logger.debug("Writed row on csv file")
-    logger.info("Exported ")
+    logger.info("Exported '%s'", fname)
 
 
 def main():
