@@ -1,6 +1,3 @@
-import psycopg2
-from psycopg2.extensions import AsIs
-
 import argparse
 import csv
 import datetime
@@ -9,6 +6,8 @@ import os
 import requests
 import sys
 
+import psycopg2
+from psycopg2.extensions import AsIs
 
 logger = None
 
@@ -36,7 +35,6 @@ def parse_args():
     todays_date = str(datetime.date.today())
 
     parser = argparse.ArgumentParser(
-        prog="hr.py",
         description="This a program for managing Hr operations",
         epilog="use these subcommands to do specific operations",
     )
