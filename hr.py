@@ -82,7 +82,7 @@ def parse_args():
         "-e", "--empid", help="Specify employee id ", type=str
     )
     parser_leave_emp.add_argument(
-        "-d", "--date", help="Specify date ", type=str, default=todays_date
+        "-d", "--date", help="Specify date (YYYY-MM-DD) (Default : %(default)s)", type=str, default=todays_date
     )
     parser_leave_emp.add_argument(
         "-r",
@@ -239,6 +239,7 @@ def load_csv_into_db(args, data, user):
 
 
 def load_leave_employee(args, user):
+    # Need proper error handling in this function
     try:
         with psycopg2.connect(f"dbname={args.db} user={user}") as connection:
             with connection.cursor() as curs:
