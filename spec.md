@@ -1,14 +1,6 @@
 # OBJECTIVE :
  Python script that converts data from a CSV file into vCard Virtual Visiting Card files. 
- 
- 
- 
-Certainly! Below is an improved version of your `spec.md` with some formatting enhancements:
-
-```markdown
-# Objective
-
-Create a Python script that converts data from a CSV file into vCard Virtual Visiting Card files.
+ Create a Python script that converts data from a CSV file into vCard Virtual Visiting Card files.
 
 ## Purpose
 
@@ -17,8 +9,9 @@ The purpose of this code is to:
 1. Read employee information from a CSV file.
 2. Create a database in PostgreSQL.
 3. Load the employee details into the database.
-4. Generate virtual visiting cards and QR code image files for each person.
+4. Generate virtual visiting cards and QR code image files for each person
 5. Get all details of about employee of perticular id 
+6. Add leaves for employees and the default date must be today's
 
 ## Input
 
@@ -31,7 +24,7 @@ python3 vcard.py <subcommand> [options]
 
 - `-v, --verbose` (optional): Print verbose logs.
 
-Available Subcommand:
+### Subcommands:
 
 - `createdb`: Create a PostgreSQL database.
     Options:
@@ -56,12 +49,18 @@ Available Subcommand:
     - `-b, --db`: Specify the database name.
     - `-s, --size` (optional): Size of the QR code to generate (default: 300, only with the `qrcode` action).
 
+- `leavemp` : 
+    `-b, --db`: Specify the database name.
+    `-e, --empid`: Specify the employee ID.
+    `-d, --date`: Specify the leave date (default: today's date).
+    `-r, --reason`: Specify the reason for leave (default: "Not mentioned").
 
-- `employee`: Get details and leave remaining of an employee
+
+- `export`: Get deatailed summary of employees in csv file,
     Options:
 
     - `-b, --db`: Specify the database name.
-    - `-e  ---employee`Specifying the employee id
+    
 
 
 ## Output
@@ -81,7 +80,7 @@ Retrives employee details and leave remaining of perticular employee with the pa
 
 ## Usage
 
-Run the script through the command line by choosing one of the subcommand: `createdb`, `load`, `vcard`,`employee` or `qrcode`. Perform tasks such as creating a database, loading data from the employee's CSV file into the database, and generating vCards and QR codes.
+Run the script through the command line by choosing one of the subcommand: `createdb`, `load`, `vcard`,`export`,`qrcode` & `leavemp`. Perform tasks such as creating a database, loading data from the employee's CSV file into the database, and generating vCards and QR codes.
 
 
 

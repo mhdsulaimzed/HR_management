@@ -55,12 +55,12 @@ def parse_args():
 
     # loading csv into database
     parser_load = subparser.add_parser(
-        "loadcsv", help="insert data from file into employee table in database "
+        "loadcsv", help="insert data from file into employee table in database ",description="Imports list of employees into the database from specified file '-l'"
     )
     parser_load.add_argument(
         "-l",
         "--load",
-        help="Specifies the file name to be loaded (for the 'loadcsv' action)",
+        help="Specifies the file name to be loaded ",
         type=str,
     )
     parser_load.add_argument(
@@ -90,7 +90,7 @@ def parse_args():
         default=300,
     )
 
-    parser_leave_emp = subparser.add_parser("leavemp", help="add leaves for employees")
+    parser_leave_emp = subparser.add_parser("leavemp", help="add leaves for employees",description="Adds leaves taken by the employee")
 
     parser_leave_emp.add_argument(
         "-b", "--db", help="Specify database name ", type=str, default="hr1"
@@ -109,7 +109,7 @@ def parse_args():
         default="Not mentioned",
     )
     parser_export = subparser.add_parser(
-        "export", help="Get the employee detail as csv file"
+        "export", help="Get the employee detail as csv file",description="Get a detailed summary of all employees in a csv file"
     )
     parser_export.add_argument(
         "-b", "--db", help="Specify database name ", type=str, default="hr1"
