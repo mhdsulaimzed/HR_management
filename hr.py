@@ -1,6 +1,3 @@
-import psycopg2
-from psycopg2.extensions import AsIs
-
 import argparse
 import csv
 import datetime
@@ -9,6 +6,8 @@ import os
 import requests
 import sys
 
+import psycopg2
+from psycopg2.extensions import AsIs
 
 logger = None
 
@@ -36,40 +35,29 @@ def parse_args():
     todays_date = str(datetime.date.today())
 
     parser = argparse.ArgumentParser(
-        prog="hr.py",
         description="This a program for managing Hr operations",
         epilog="use these subcommands to do specific operations",
     )
 
     parser.add_argument(
-        "-v", "--verbose", help="print out detailed logs", action="store_true"
-    )
+        "-v", "--verbose", help="print out detailed logs", action="store_true")
+    parser.add_argument("--db", help="Name of database to use (Default : %(default)s)", default="hrms", type=str, action="store")
 
     subparser = parser.add_subparsers(dest="subcommand", help="subcommand help")
 
     # database command
     parser_createdb = subparser.add_parser("createdb", help="create a database")
-    parser_createdb.add_argument(
-        "-b", "--db", help=" give a name for a new database", type=str
-    )
 
     # loading csv into database
     parser_load = subparser.add_parser(
-        "loadcsv", help="insert data from file into employee table in database ",description="Imports list of employees into the database from specified file '-l'"
+        "loadcsv", help="Imports employees from csv file",description="Imports employees from CSV file"
     )
     parser_load.add_argument(
-        "-l",
-        "--load",
+        "load",
         help="Specifies the file name to be loaded ",
         type=str,
     )
-    parser_load.add_argument(
-        "-b",
-        "--db",
-        help=" Specify database name give a name for a new database",
-        type=str,
-        default="hr1",
-    )
+
     parser_load.add_argument(
         "-d",
         "--address",
@@ -79,10 +67,8 @@ def parse_args():
     )
     # commad for creating vcards
     parser_vcard = subparser.add_parser("vcard", help="generate vcards")
-    parser_vcard.add_argument("-b", "--db", help="Specify database name ", type=str)
 
     parser_qrcode = subparser.add_parser("qrcode", help="generate qrcode")
-    parser_qrcode.add_argument("-b", "--db", help="Specify database name ", type=str)
     parser_qrcode.add_argument(
         "-s",
         "--size",
@@ -93,13 +79,10 @@ def parse_args():
     parser_leave_emp = subparser.add_parser("leavemp", help="add leaves for employees",description="Adds leaves taken by the employee")
 
     parser_leave_emp.add_argument(
-        "-b", "--db", help="Specify database name ", type=str, default="hr1"
-    )
-    parser_leave_emp.add_argument(
         "-e", "--empid", help="Specify employee id ", type=str
     )
     parser_leave_emp.add_argument(
-        "-d", "--date", help="Specify date ", type=str, default=todays_date
+        "-d", "--date", help="Specify date (YYYY-MM-DD) (Default : %(default)s)", type=str, default=todays_date
     )
     parser_leave_emp.add_argument(
         "-r",
@@ -111,10 +94,6 @@ def parse_args():
     parser_export = subparser.add_parser(
         "export", help="Get the employee detail as csv file",description="Get a detailed summary of all employees in a csv file"
     )
-    parser_export.add_argument(
-        "-b", "--db", help="Specify database name ", type=str, default="hr1"
-    )
-
     args = parser.parse_args()
     return args
 
@@ -260,6 +239,7 @@ def load_csv_into_db(args, data, user):
 
 
 def load_leave_employee(args, user):
+    # Need proper error handling in this function
     try:
         with psycopg2.connect(f"dbname={args.db} user={user}") as connection:
             with connection.cursor() as curs:
@@ -342,7 +322,8 @@ GROUP BY e.s_no, e.first_name, e.last_name, d.title, d.total_leaves, e.email, e.
 
 
 def export_employee_details(data):
-    with open("employees_summary.csv", "w", newline="") as csvfile:
+    fname = "employees_summary.csv"
+    with open(fname, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(
             [
@@ -362,7 +343,7 @@ def export_employee_details(data):
         for row in data:
             writer.writerow(row)
             logger.debug("Writed row on csv file")
-    logger.info("Exported ")
+    logger.info("Exported '%s'", fname)
 
 
 def main():
@@ -372,10 +353,10 @@ def main():
 
     if args.subcommand == "createdb":
         create_database(args, user)
+        create_tables(args, user)
 
     if args.subcommand == "loadcsv":
         data = parse_data(args)
-        create_tables(args, user)
         for i in range(len(data)):
             load_csv_into_db(args, data[i], user)
 
