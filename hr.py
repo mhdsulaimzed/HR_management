@@ -56,8 +56,8 @@ def parse_args():
         "loadcsv", help="insert data from file into employee table in database ",description="Imports list of employees into the database from specified file '-l'"
     )
     parser_load.add_argument(
-        "-l",
-        "--load",
+        "-f",
+        "--file",
         help="Specifies the file name to be loaded ",
         type=str,
     )
