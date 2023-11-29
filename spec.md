@@ -74,7 +74,7 @@ Create a PostgreSQL database and load the CSV file into the database with a user
 Create directories named `vcards` and `qrcode` and save the generated vCards and QR codes in these directories. Files will be named with the employee's last name in VCF and PNG formats.
 
 
-### employee
+### 
 
 Retrives employee details and leave remaining of perticular employee with the passed employee id
 

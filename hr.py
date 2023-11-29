@@ -3,6 +3,7 @@ from psycopg2.extensions import AsIs
 
 import argparse
 import csv
+from configparser import ConfigParser
 import datetime
 import logging
 import os
@@ -31,8 +32,19 @@ def configure_logger(args):
     logger.addHandler(handler)
     logger.addHandler(fhandler)
 
+def set_db_config(dbname):
+    config = ConfigParser()
+    config.read('init.ini')
+    config.set("Database","dbname",dbname)
+    with open('init.ini',"w") as configfile:
+        config.write(configfile)
+
+
 
 def parse_args():
+    config = ConfigParser()
+    config.read("init.ini")
+    print(config["Database"]["dbname"])
     todays_date = str(datetime.date.today())
 
     parser = argparse.ArgumentParser(
@@ -42,6 +54,9 @@ def parse_args():
     )
 
     parser.add_argument(
+        "-b", "--db", help="Database name", action="store_true" , default=config["Database"]["dbname"]
+    )
+    parser.add_argument(
         "-v", "--verbose", help="print out detailed logs", action="store_true"
     )
 
@@ -49,9 +64,8 @@ def parse_args():
 
     # database command
     parser_createdb = subparser.add_parser("createdb", help="create a database")
-    parser_createdb.add_argument(
-        "-b", "--db", help=" give a name for a new database", type=str
-    )
+    parser_createdb.add_argument("-b", "--db", help="Specify database name ", type=str)
+
 
     # loading csv into database
     parser_load = subparser.add_parser(
@@ -63,13 +77,7 @@ def parse_args():
         help="Specifies the file name to be loaded ",
         type=str,
     )
-    parser_load.add_argument(
-        "-b",
-        "--db",
-        help=" Specify database name give a name for a new database",
-        type=str,
-        default="hr1",
-    )
+   
     parser_load.add_argument(
         "-d",
         "--address",
@@ -82,19 +90,12 @@ def parse_args():
     parser_vcard.add_argument("-b", "--db", help="Specify database name ", type=str)
 
     parser_qrcode = subparser.add_parser("qrcode", help="generate qrcode")
-    parser_qrcode.add_argument("-b", "--db", help="Specify database name ", type=str)
-    parser_qrcode.add_argument(
-        "-s",
-        "--size",
+    parser_qrcode.add_argument("-s","--size",
         help="Specifies a custom size between 100 and 500 (for the 'qrcode' command)",
-        default=300,
-    )
+        default=300,)
 
     parser_leave_emp = subparser.add_parser("leavemp", help="add leaves for employees",description="Adds leaves taken by the employee")
 
-    parser_leave_emp.add_argument(
-        "-b", "--db", help="Specify database name ", type=str, default="hr1"
-    )
     parser_leave_emp.add_argument(
         "-e", "--empid", help="Specify employee id ", type=str
     )
@@ -111,9 +112,7 @@ def parse_args():
     parser_export = subparser.add_parser(
         "export", help="Get the employee detail as csv file",description="Get a detailed summary of all employees in a csv file"
     )
-    parser_export.add_argument(
-        "-b", "--db", help="Specify database name ", type=str, default="hr1"
-    )
+    
 
     args = parser.parse_args()
     return args
@@ -371,11 +370,12 @@ def main():
     configure_logger(args)
 
     if args.subcommand == "createdb":
+        set_db_config(args.db)
         create_database(args, user)
+        create_tables(args, user)
 
     if args.subcommand == "loadcsv":
         data = parse_data(args)
-        create_tables(args, user)
         for i in range(len(data)):
             load_csv_into_db(args, data[i], user)
 
