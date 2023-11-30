@@ -94,7 +94,7 @@ def parse_args():
     parser_leave_emp.add_argument("-d", "--date", help="Date 'YYYY-MM-DD' (Default : %(default)s) ", type=str, default=todays_date)
     parser_leave_emp.add_argument( "-r", "--reason",help=" Reason for leave ",type=str,default="Not mentioned")
     parser_export = subparser.add_parser("export", help="Get the employee detail as csv file",description="Get a detailed summary of all employees in a csv file")
-    
+    parser_export.add_argument("-f","--file",)
 
     args = parser.parse_args()
     return args
