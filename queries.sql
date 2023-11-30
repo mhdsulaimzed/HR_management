@@ -13,7 +13,8 @@
                         designation INTEGER REFERENCES designation(id), 
                         email VARCHAR(50),
                             phone VARCHAR(50), 
-                        company_address VARCHAR(100) );
+                        company_address VARCHAR(100),
+                        UNIQUE(email));
 
     CREATE TABLE employee_leave(
                         s_no BIGSERIAL PRIMARY KEY,
@@ -21,3 +22,4 @@
                         employee_id INTEGER REFERENCES employees(s_no),
                         reason VARCHAR(200),
                         UNIQUE(employee_id,leave_date));
+
