@@ -1,15 +1,16 @@
-import psycopg2
-from psycopg2.extensions import AsIs
-
 import argparse
 import csv
 from configparser import ConfigParser
 import datetime
 import logging
+import models
 import os
 import requests
 import sys
 import shutil
+
+import psycopg2
+import sqlalchemy as sa
 
 
 logger = None
@@ -100,19 +101,7 @@ def parse_args():
     return args
 
 
-def parse_data(args):
-    filename = args.file
-    datalist = []
-    try:
-        with open(filename, "r") as data:
-            detail = csv.reader(data)
-            for i in detail:
-                datalist.append(i)
 
-        return datalist
-    except FileNotFoundError as e:
-        logger.error("Error %s", (e,))
-        sys.exit(-1)
 
 
 def fetch_from_db(args, user):
@@ -186,112 +175,65 @@ def create_qrcode_images(data, args):
         logger.info("Created QRs for all")
 
 
-def create_database(args, user):
-    try:
-        connection = psycopg2.connect(database="postgres", user=user)
-        curs = connection.cursor()
-        curs.execute("commit")
-        curs.execute("create database %s ;", (AsIs(args.db),))
-        curs.close()
-        connection.close()
-        logger.info("Database created")
-    except psycopg2.errors.DuplicateDatabase as e:
-        logger.error("Error %s", e)
-
-
-def create_tables(args, user):
-    try:
-        dbname = args.db
-        connnection = psycopg2.connect(f"dbname={dbname} user={user}")
-        curs = connnection.cursor()
-        query = open("queries.sql", "r")
-        curs.execute(query.read())
-        connnection.commit()
-        curs.close()
-        connnection.close()
-        logger.info(f"Table employees created in {dbname} database")
-
+def create_database(args):
+    try: 
+        db_uri = f"postgresql:///{args.dbname}"
+        models.create_all(db_uri)
+        session = models.get_session(db_uri)
+        s1 = models.Designation(title = 'Staff Engineer',max_levaes=20)
+        s2 = models.Designation(title = 'Senior Engineer',max_levaes=20)
+        s3 = models.Designation(title = 'Junior Engineer',max_levaes=20)
+        s4 = models.Designation(title = 'Tech Lead',max_levaes=20)
+        s5 = models.Designation(title = 'Project Manager',max_levaes=20)
+        session.add_all(["s1","s2","s3","s4","s5"])
+        session.commit()  
     except psycopg2.errors.DuplicateTable as e:
         logger.error("Table already exists: %s", e)
         sys.exit(-1)
+    
 
 
-def load_csv_into_db(args, data, user):
+def parse_data(args):
+    filename = args.file
+    datalist = []
     try:
-        connection = psycopg2.connect(f"dbname={args.db} user={user}")
-        curs = connection.cursor()
-        fname, lname, designation, email, phone = data
+        with open(filename, "r") as data:
+            detail = csv.reader(data)
+            for i in detail:
+                datalist.append(i)
 
-        curs.execute(
-            f"""INSERT
-                         INTO
-                         employees(first_name, last_name, designation, email, phone, company_address)
-                          VALUES(%s,%s,%s,%s,%s,%s)""",
-            (fname, lname, designation, email, phone, args.address),
-        )
-
-        connection.commit()
-        curs.close()
-        connection.close()
-        logger.debug(" Inserted datas of %s into table employees ", fname)
-
-    except psycopg2.OperationalError as e:
-        logger.error("Error %s", e)
-    except psycopg2.errors.ForeignKeyViolation as e:
-        logger.warning("Foreign key violation: %s")
-
-    except psycopg2.Error as e:
-        logger.error(f"Error {e}")
+        return datalist
+    except FileNotFoundError as e:
+        logger.error("Error %s", (e,))
+        sys.exit(-1)
+    
 
 
-def load_leave_employee(args, user):
-    try:
-        with psycopg2.connect(f"dbname={args.db} user={user}") as connection:
-            with connection.cursor() as curs:
-                try:
-                    curs.execute(
-                        "SELECT designation FROM employees WHERE s_no = %s ",
-                        (args.empid,),
-                    )
-                    designation = curs.fetchone()[0]
-                except (TypeError, IndexError) as e:
-                    logger.error(f"Error while fetching designation: %s", (e,))
-                    raise  # for exiting the fun'
+def load_csv_into_db(args, data):
+        
+    db_uri = f"postgresql:///{args.dbname}"
+    session = models.get_session(db_uri)
+    fname, lname, title, email, phone = data
+    qs = sa.select(models.Designation).where(models.Designation.title == title)
+    designation = session.execute(qs)
+    employee = models.Employee(lname=lname,
+                                   fname=fname,
+                                   title=designation,
+                                   email=email,
+                                   phone=phone)
+    session.add(employee)
+    session.commit()
 
-                try:
-                    curs.execute(
-                        "SELECT total_leaves FROM designation WHERE id = %s ",
-                        (designation,),
-                    )
-                    total_leave = curs.fetchone()[0]
-                except (TypeError, IndexError) as e:
-                    logger.error(f"Error while fetching total_leave: %s", (e,))
-                    raise
 
-                try:
-                    curs.execute(
-                        "SELECT count(leave_date) FROM employee_leave WHERE employee_id = %s ",
-                        (args.empid,),
-                    )
-                    leave_count = curs.fetchone()[0]
-                except (TypeError, IndexError) as e:
-                    logger.error(f"Error while fetching leave count: %s", (e,))
-                    raise
+def load_leave_employee(args):
+    db_uri = f"postgresql:///{args.dbname}"
+    session = models.get_session(db_uri)
+    qs = sa.select(models.Leave).where(models.Leave.employee_id == args.empid)
+    employee_on_leave = session.execute(qs)
+    leave_input = models.Leave(date = args.date,employee_id = args.empid,reason = args.reason)
 
-                try:
-                    if leave_count < total_leave:
-                        curs.execute(
-                            "INSERT INTO employee_leave(leave_date, employee_id,reason) VALUES (%s,%s,%s)",
-                            (args.date, args.empid, args.reason),
-                        )
-                        logger.info("Leave added")
-                    else:
-                        logger.warning("Maximum leave attained")
-                except psycopg2.Error as e:
-                    logger.error("Error while inserting leave data: %s", e)
-
-    except psycopg2.Error as e:
-        logger.error("Error: %s", e)
+    session.add(leave_input)
+    session.commit()
 
 
 def join_tables(args, user):
@@ -357,8 +299,8 @@ def main():
 
     if args.subcommand == "createdb":
         set_db_config(args.db)
-        create_database(args, user)
-        create_tables(args, user)
+        create_database(args)
+        
 
     if args.subcommand == "loadcsv":
         data = parse_data(args)
