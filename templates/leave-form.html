@@ -1,0 +1,31 @@
+{%extends 'base.html'%}
+
+{%block content%}
+
+
+
+<div class="card">
+   <div class="card-body">
+     <h4 class="card-title">Add  leave for employee</h4>
+     <form action="{{ url_for('add_leave',id=id) }}" method="post" >
+      <label for="date">Date</label>
+      <input type="text" placeholder="YYYY-MM-DD" name="date" class="form-control>
+      <br>
+      <br>
+      <label for="date">Reason</label>
+      <input type="text" placeholder="Reason" name="reason" class="form-control">
+  
+      <button type="submit" class="btn btn-danger">Add Leave</button>
+  
+  
+      
+     </form>
+     
+   </div>
+ </div>
+
+ 
+    
+
+
+{%endblock%}

@@ -1,0 +1,13 @@
+{%extends "base.html" %}
+
+{%block content%}
+<ul>
+{%for i in users%}
+<li><a href="{{url_for('employee_details',id=i.id)}}">{{i.fname}}</a></li>
+
+{%endfor%}
+</ul>
+
+
+
+{%endblock%}

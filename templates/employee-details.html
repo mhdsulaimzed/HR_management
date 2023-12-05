@@ -1,0 +1,21 @@
+{%extends "base.html" %}
+
+{%block content%}
+<div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Employee details</h4>
+      <p class="card-text">ID:{{user.id}}</p>
+      <p class="card-text">FIRST NAME:{{user.fname}}</p>
+      <p class="card-text">LAST NAME:{{user.lname}}</p>
+      <p class="card-text">EMAIL:{{user.email}}</p>
+      <p class="card-text">PHONE:{{user.phone}}</p>
+
+      <a href="{{url_for('employee_details',id=(user.id) -1)}}" class="card-link">previous</a>
+      <a href="{{url_for('employee_details',id=(user.id) +1)}}" class="card-link">next</a>
+      <a href="{{url_for('add_leave',id=user.id)}}" class="card-link">Add leave</a>
+    </div>
+  </div>
+
+
+
+{%endblock%}

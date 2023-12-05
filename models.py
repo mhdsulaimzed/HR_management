@@ -4,6 +4,8 @@ from sqlalchemy.orm import Mapped,mapped_column,relationship
 import datetime
 import logging
 from typing import List
+from flask_sqlalchemy import SQLAlchemy
+
 
 class Base(DeclarativeBase):
         def __repr__(self):

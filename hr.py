@@ -10,7 +10,14 @@ import sys
 import shutil
 
 import psycopg2
+from sqlalchemy import select,func,join,outerjoin
 import sqlalchemy as sa
+
+
+
+from models import Employee,Designation,Leave
+
+
 
 
 logger = None
@@ -142,7 +149,7 @@ def parse_args():
 def fetch_from_db(args):
     db_uri = f"postgresql:///{args.db}"
     session = models.get_session(db_uri)
-    qs = sa.select(
+    qs = select(
         models.Employee.fname,
         models.Employee.lname,
         models.Designation.title,
@@ -238,76 +245,86 @@ def parse_data(args):
         sys.exit(-1)
 
 
+
+
+
 def load_csv_into_db(args, data):
     db_uri = f"postgresql:///{args.db}"
     session = models.get_session(db_uri)
-    print(data)
-    fname, lname, title, email, phone = data
-    s = models.Employee(
-        fname=fname, lname=lname, title_id=(title), email=email, phone=phone
-    )
-    session.add(s)
+
+    for row in data:
+        fname, lname, title, email, phone = row
+
+        # Check if employee already exists based on email
+        existing_employee = session.query(models.Employee).filter_by(email=email).first()
+
+        if not existing_employee:
+            # Create and insert new employee if not found
+            s = models.Employee(
+                fname=fname,
+                lname=lname,
+                title_id=(title),
+                email=email,
+                phone=phone,
+            )
+            session.add(s)
+        else:
+            # Update existing employee if found
+            existing_employee.fname = fname
+            existing_employee.lname = lname
+            existing_employee.title_id = title
+            existing_employee.phone = phone
+
     session.commit()
-    logger.debug(f"Inserted into datase: {fname}")
+    logger.debug(f"Inserted or updated employee data")
 
 
 def load_leave_employee(args):
     db_uri = f"postgresql:///{args.db}"
     session = models.get_session(db_uri)
-    qs = sa.select(models.Leave).where(models.Leave.employee_id == args.empid)
-    employee_on_leave = session.execute(qs)
     leave_input = models.Leave(
         date=args.date, employee_id=args.empid, reason=args.reason
     )
-
     session.add(leave_input)
     session.commit()
     logger.info(f"Leave added {args.empid}")
 
 
-def join_tables(args, user):
-    try:
-        db_uri = f"postgresql:///{args.dbname}"
+def create_employee_summary(args):
+    
+        db_uri = f"postgresql:///{args.db}"
         session = models.get_session(db_uri)
-        qs = sa.select(
-            models.Employee.id,
-            models.Employee.fname,
-            models.Employee.lname,
-            models.Employee.email,
-            models.Employee.phone,
-        ).where(
-            models.Designation.id == models.Employee.title_id,
-            models.Leave.employee_id == args.empid,
-        )
-        pp = session.execute(qs)
-        connection = psycopg2.connect(f"dbname={args.db} user={user}")
-        curs = connection.cursor()
-        curs.execute(
-            """SELECT
-  e.s_no,
-  e.first_name,
-  e.last_name,
-  d.title,
-  d.total_leaves,
-  e.email,
-  e.phone,
-  e.company_address,
-  COUNT(DISTINCT l.leave_date) AS leave_taken,
-  d.total_leaves - COUNT(DISTINCT l.leave_date) AS leave_remaining
-FROM employees e
-JOIN designation d ON e.designation = d.id
-LEFT JOIN employee_leave l ON e.s_no = l.employee_id
-GROUP BY e.s_no, e.first_name, e.last_name, d.title, d.total_leaves, e.email, e.phone, e.company_address;
-"""
-        )
-        data = curs.fetchall()
-        connection.commit()
-        curs.close()
-        connection.close()
-        logger.info(f"Joined tables and data fetched")
+        query = (
+        select(
+        Employee.id,
+        Employee.fname,
+        Employee.lname,
+        Designation.title,
+        Employee.email,
+        Employee.phone,
+        Designation.max_leaves,
+        func.count(Leave.date).label("leave_taken"),
+        func.coalesce(Designation.max_leaves - func.count(Leave.date)).label("leave_remaining"),)
+    
+    .join(Designation, Employee.title_id == Designation.id)
+    .outerjoin(Leave, Employee.id == Leave.employee_id)
+    .group_by(
+        Employee.id,
+        Employee.fname,
+        Employee.lname,
+        Designation.title,
+        Designation.max_leaves,
+        Employee.email,
+        Employee.phone,
+    ))
+
+        data = session.execute(query).fetchall()
+        logger.info("Employee summary created")
         return data
-    except psycopg2.Error as e:
-        logger.error("Error %s", e)
+
+        
+        
+    
 
 
 def export_employee_details(data):
@@ -319,10 +336,9 @@ def export_employee_details(data):
                 "First Name",
                 "Last Name",
                 "Designation",
-                "Total Leaves",
                 "Email",
                 "Phone",
-                "Company Address",
+                "Total Leaves",
                 "Leaves Taken",
                 "Leaves Remaining",
             ]
@@ -345,8 +361,7 @@ def main():
 
     if args.subcommand == "loadcsv":
         data = parse_data(args)
-        for i in range(len(data)):
-            load_csv_into_db(args, data[i])
+        load_csv_into_db(args, data)
         logger.info("Inserted all datas into database")
 
     if args.subcommand == "vcard":
@@ -362,7 +377,7 @@ def main():
         load_leave_employee(args)
 
     if args.subcommand == "export":
-        data = join_tables(args, user)
+        data = create_employee_summary(args)
         export_employee_details(data)
 
 
