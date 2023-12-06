@@ -302,7 +302,7 @@ def create_employee_summary(args):
         Designation.title,
         Employee.email,
         Employee.phone,
-        Designation.max_leaves,
+        Designation.max_leaves, 
         func.count(Leave.date).label("leave_taken"),
         func.coalesce(Designation.max_leaves - func.count(Leave.date)).label("leave_remaining"),)
     

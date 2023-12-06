@@ -1,32 +1,64 @@
-{%extends 'base.html'%}
+{%extends "base.html" %}
 
 {%block content%}
 
-
-
-<div class="card">
-   <div class="card-body">
-     <h4 class="card-title">Add  leave for employee</h4>
-     <form action="{{ url_for('add_leave',id=id) }}" method="post" >
-      <label for="date">Date</label>
-      <input type="text" placeholder="YYYY-MM-DD" name="date" class="form-control>
-      <br>
-      <br>
-      <label for="date">Reason</label>
-      <input type="text" placeholder="Reason" name="reason" class="form-control">
+<div class="d-flex" id="wrapper">
+  <!-- Sidebar-->
+  <div class="border-end bg-white" id="sidebar-wrapper">
+      <div class="sidebar-heading border-bottom bg-light">Employees</div>
+      <div class="list-group list-group-flush">
+       {%for user in users%}
+          <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('employee_details',id=user.id)}}">{{user.fname}}</a>
+         
+          
+          {%endfor%}  
+      </div>
+  </div>
   
-      <button type="submit" class="btn btn-danger">Add Leave</button>
-  
-  
+  <div id="page-content-wrapper">
       
-     </form>
-     
-     
-   </div>
- </div>
 
- 
-    
+      
+      <div class="container-fluid">
 
 
+  
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Employee details</h4>
+      <p class="card-text">ID:{{user.id}}</p>
+      <p class="card-text">FIRST NAME:{{user.fname}}</p>
+      <p class="card-text">LAST NAME:{{user.lname}}</p>
+      <p class="card-text">EMAIL:{{user.email}}</p>
+      <p class="card-text">PHONE:{{user.phone}}</p>
+
+    </div>
+  </div>
+<br>
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Add  leave for employee</h4>
+      <form action="{{ url_for('add_leave',id=id) }}" method="post" >
+       <label for="date">Date</label>
+       <input type="text" placeholder="YYYY-MM-DD" name="date" class="form-control" required>
+       <br>
+       <br>
+       <label for="date">Reason</label>
+       <input type="text" placeholder="Reason" name="reason" class="form-control">
+       <br>
+        <div class="d-grid gap-2 d-md-block">
+       <button type="submit" class="btn btn-danger">Add Leave</button>
+   
+      </div>
+       
+      </form>
+      
+      
+    </div>
+  </div>
+          
+          
+      </div>
+  </div>
+</div>
 {%endblock%}

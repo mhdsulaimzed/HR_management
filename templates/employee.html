@@ -1,21 +1,42 @@
 {%extends "base.html" %}
 
 {%block content%}
-{% with messages = get_flashed_messages()%}
+<div class="d-flex" id="wrapper">
+     <!-- Sidebar-->
+     <div class="border-end bg-white" id="sidebar-wrapper">
+         <div class="sidebar-heading border-bottom bg-light">Employees</div>
+         <div class="list-group list-group-flush">
+          {%for i in users%}
+             <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('employee_details',id=i.id)}}">{{i.fname}}</a>
+            
+             
+             {%endfor%}  
+         </div>
+     </div>
+     
+     <div id="page-content-wrapper">
+         
+   
+         
+         <div class="container-fluid">
+          {% with messages = get_flashed_messages()%}
      {%if messages%}
      <div class="flashes">
-     {{messages[0]}}
+     <h6 style="text-align:center;">{{messages[0]}}</h6>
     </div>
 
      {%endif%}
 
      {%endwith%}
-<ul>
-{%for i in users%}
-<li><a href="{{url_for('employee_details',id=i.id)}}">{{i.fname}}</a></li>
+             
+             
+         </div>
+     </div>
+   </div>
 
-{%endfor%}
-</ul>
+...
+
+
 
 
 
