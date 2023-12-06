@@ -3,6 +3,7 @@ import models
 from sqlalchemy import select
 app = flask.Flask("hrsw")
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///hrsw"
+app.secret_key="abc"
 
 db = models.SQLAlchemy(model_class=models.Base)
 db.init_app(app)
@@ -51,6 +52,7 @@ def add_leave(id):
 
         db.session.add(s)
         db.session.commit()
+        flask.flash('Leave added successfully!')
         return flask.redirect(flask.url_for('employees'))
 
     

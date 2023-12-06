@@ -1,6 +1,15 @@
 {%extends "base.html" %}
 
 {%block content%}
+{% with messages = get_flashed_messages()%}
+     {%if messages%}
+     <div class="flashes">
+     {{messages[0]}}
+    </div>
+
+     {%endif%}
+
+     {%endwith%}
 <ul>
 {%for i in users%}
 <li><a href="{{url_for('employee_details',id=i.id)}}">{{i.fname}}</a></li>
