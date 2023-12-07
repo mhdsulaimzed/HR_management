@@ -10844,8 +10844,18 @@ textarea.form-control-lg {
 }
 
 #page-content-wrapper {
+  background: url('https://hamon.in/wp-content/uploads/2023/01/Layer-2.png') no-repeat center center fixed;
+  opacity: 0.5;
+  background-size: cover;
+  height: 100vh; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
   min-width: 100vw;
 }
+  
+
 
 body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
   margin-left: 0;

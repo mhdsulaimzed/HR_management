@@ -3,7 +3,7 @@
 {%block content%}
 
 <div class="d-flex" id="wrapper">
-  <!-- Sidebar-->
+  
   <div class="border-end bg-white" id="sidebar-wrapper">
       <div class="sidebar-heading border-bottom bg-light">Employees</div>
       <div class="list-group list-group-flush">
@@ -22,7 +22,14 @@
       <div class="container-fluid">
 
 
-  
+    {% with messages = get_flashed_messages()%}
+    {%if messages%}
+    <div class="flashes">
+    <h6 style="text-align:center;color: brown;">{{messages[0]}}</h6>
+    </div>
+    {%endif%}
+
+     {%endwith%}
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">Employee details</h4>

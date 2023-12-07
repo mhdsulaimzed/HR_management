@@ -3,7 +3,7 @@
 {%block content%}
 
 <div class="d-flex" id="wrapper">
-  <!-- Sidebar-->
+ 
   <div class="border-end bg-white" id="sidebar-wrapper">
       <div class="sidebar-heading border-bottom bg-light">Employees</div>
       <div class="list-group list-group-flush">
@@ -40,7 +40,7 @@
       <h4 class="card-title">Add  leave for employee</h4>
       <form action="{{ url_for('add_leave',id=id) }}" method="post" >
        <label for="date">Date</label>
-       <input type="text" placeholder="YYYY-MM-DD" name="date" class="form-control" required>
+       <input type="date" placeholder="YYYY-MM-DD" name="date" class="form-control" required>
        <br>
        <br>
        <label for="date">Reason</label>

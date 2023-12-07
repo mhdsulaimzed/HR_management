@@ -56,7 +56,7 @@ def add_leave(id):
         db.session.add(s)
         db.session.commit()
         flask.flash('Leave added successfully!')
-        return flask.redirect(flask.url_for('employees'))
+        return flask.redirect(flask.url_for('employee_details',id=id))
     
 
 @app.route("/search", methods=["GET", "POST"])
@@ -67,10 +67,10 @@ def search_employee():
         if employee_id:
             
             qs = db.select(models.Employee).where(models.Employee.id == employee_id)
-            result = db.session.execute(qs).scalar()
+            check_user = db.session.execute(qs).scalar()
 
-            if result:
-                return flask.redirect(flask.url_for("employee_details", id=result.id))
+            if check_user:
+                return flask.redirect(flask.url_for("employee_details", id=check_user.id))
             else:
                 flask.flash("Employee not found.")
         else:
