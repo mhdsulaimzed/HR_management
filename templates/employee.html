@@ -1,35 +1,53 @@
 {%extends "base.html" %}
 
+{%block nav%}
+<li class="nav-item active text-success"><a onclick="searchForm()" class="nav-link" href="">Search</a></li>
+{%endblock%}
+
+
 {%block content%}
 <div class="d-flex" id="wrapper">
-     
-     <div class="border-end bg-white" id="sidebar-wrapper">
-         <div class="sidebar-heading border-bottom bg-light">Employees</div>
-         <div class="list-group list-group-flush">
-          {%for i in users%}
-             <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('employee_details',id=i.id)}}">{{i.fname}}</a>
-            
-             
-             {%endfor%}  
-         </div>
-     </div>
-     
-     <div id="page-content-wrapper">
-         
-   
-         
-         <div class="container-fluid">
-    
-             
-             
-         </div>
-     </div>
+
+   <div class="border-end bg-white" id="sidebar-wrapper">
+      <div class="sidebar-heading border-bottom bg-light">Employees</div>
+      <div class="list-group list-group-flush">
+         {%for i in users%}
+         <a class="list-group-item list-group-item-action list-group-item-light p-3 " href=""
+            onclick="FetchEmployeeDetails({{i.id}})">{{i.fname}}</a>
+
+         {%endfor%}
+      </div>
    </div>
 
-...
+
+   <div class="container-lg mt-3">
+
+      <div id="not_found" class="row"></div>
+      <div class="row ">
+
+         {% with messages = get_flashed_messages()%}
+         {%if messages%}
+         <div class="flashes">
+            <h6 style="text-align:center;color: brown;">{{messages[0]}}</h6>
+         </div>
+         {%endif%}
+
+         {%endwith%}
+
+
+         <div id="id_display_det" class="col-8"></div>
+         <div class="col-4" id="leave_form"></div>
+
+      </div>
+      <div class="row">
+         <div class="col-12" id="search_form"></div>
+      </div>
+   </div>
 
 
 
 
 
-{%endblock%}
+
+
+   {%endblock%}

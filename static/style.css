@@ -103,6 +103,9 @@ body {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
+.highlight {
+  background-color: rgb(103, 103, 100); /* Set your desired highlight color */
+}
 
 hr {
   margin: 1rem 0;
@@ -10844,8 +10847,8 @@ textarea.form-control-lg {
 }
 
 #page-content-wrapper {
-  background: url('https://hamon.in/wp-content/uploads/2023/01/Layer-2.png') no-repeat center center fixed;
-  opacity: 0.5;
+  /* background: url('https://hamon.in/wp-content/uploads/2023/01/Layer-2.png') no-repeat center center fixed; */
+  /* opacity: 0.5; */
   background-size: cover;
   height: 100vh; 
   display: flex;
@@ -10873,3 +10876,14 @@ body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
     margin-left: -15rem;
   }
 }
+
+.gradient-custom {
+  /* fallback for old browsers */
+  background: #f6d365;
+  
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: -webkit-linear-gradient(to right bottom, rgba(246, 211, 101, 1), rgba(253, 160, 133, 1));
+  
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: linear-gradient(to right bottom, rgba(246, 211, 101, 1), rgba(253, 160, 133, 1))
+  }

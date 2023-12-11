@@ -5,30 +5,35 @@
  
 
 <div class="d-flex" id="wrapper">
-  <!-- Sidebar-->
+  
   <div class="border-end bg-white" id="sidebar-wrapper">
-      <div class="sidebar-heading border-bottom bg-light">Hamon HRMS</div>
-      <div class="list-group list-group-flush">
-          <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('employees')}}">Employees</a>
-          <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('search_employee')}}">Search</a>
-          <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('about')}}">About</a>
-
+      <div class="sidebar-heading border-bottom bg-light" id="list_bar">HRMS</div>
+      <div id="side_bar" class="list-group list-group-flush">
+        <a class="list-group-item list-group-item-action list-group-item-light p-3 " href=""
+            onclick="" id="news_btn">Tech News</a>
           
          
       </div>
   </div>
   
-  <div id="page-content-wrapper">
+  
       
 
       
-      <div class="container-fluid">
+      <div style="background-color: #d1d3dc;" class="container-fluid">
+        <div  class="container-lg mt-3">
 
-        <h1 class="mt-4" style="text-align: center;color: darkgreen;font-size:75px;line-height: 1.2;"><i>Welcome to Hamon HRMS</i></h1>
+        
+         <h1 class="mt-4" style="text-align:center;color: rgb(232, 209, 9);font-size:75px;line-height: 1.2;">Welcome to Hamon HRMS</h1> 
+        <div class="row" id="id_news">
+          
+        </div>
+        </div>
+      
 
           
           
-      </div>
+      
   </div>
 </div>
     
