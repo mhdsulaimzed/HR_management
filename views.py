@@ -1,27 +1,51 @@
 import flask
 import models
 from sqlalchemy import select, join, func
+from flask_cors import CORS
 
 
 app = flask.Flask("hrsw")
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///hrsw"
 app.secret_key = "abc"
+CORS(app)
 
 db = models.SQLAlchemy(model_class=models.Base)
 db.init_app(app)
 
 
-@app.route("/")
-def index():
-    return flask.render_template("index.html")
-
-
-@app.route("/employees")
+@app.route("/employees", methods=["GET","POST"])
 def employees():
-    qs = db.select(models.Employee).order_by(models.Employee.fname)
-    users = db.session.execute(qs).scalars()
-    # user_list = [{"id":user.id,"fname":user.fname,"lname":user.lname,"title":user.title.title,"email":user.email,"phone":user.phone}for user in users]
-    return flask.render_template("employee.html", users=users)
+    if flask.request.method =="GET":
+        qs = db.select(models.Employee).order_by(models.Employee.fname)
+        users_fet = db.session.execute(qs).scalars()
+        user_list = [{"id":user.id,"fname":user.fname,"lname":user.lname,"title":user.title.title,"email":user.email,"phone":user.phone}for user in users_fet]
+        return flask.jsonify(users=user_list)
+    
+    
+    if flask.request.method =="POST":
+        try:
+            print("email")
+            
+            data = flask.request.get_json()
+            if not all(key in data for key in ["fname", "lname", "title_id", "email", "phone"]):
+                return flask.jsonify({"message":"Missing required fields"})
+            print(type(data))
+            fname =data['fname']
+            lname = data['lname']
+            title = data['title_id']
+            email = data['email']
+            phone = data['phone']
+
+            print(email)
+           
+            qs = models.Employee(fname=fname,lname=lname,title_id=title,email=email,phone=phone)
+            db.session.add(qs)
+            db.session.commit()
+            return flask.jsonify({"message":"Employee Successfully added"})
+        except Exception  as e:
+            print(e)
+            return flask.jsonify({"message":"Couldnt add Employee"},)
+        
 
 
 @app.route("/employee/<int:id>")
@@ -54,70 +78,51 @@ def employee_details(id):
     }
     return flask.jsonify(user=user_list)
 
+
 def get_leave_data(id):
-    print("yes")
     query_for_leaves = (
         db.select(func.count(models.Employee.id))
         .join(models.Leave, models.Employee.id == models.Leave.employee_id)
         .filter(models.Employee.id == id)
     )
     leave = db.session.execute(query_for_leaves).scalar()
-    print("yes2")
-
     qs2 = db.select(models.Employee).where(models.Employee.id == id)
     user = db.session.execute(qs2).scalar()
-    print("yes3")
-    data = {"leave_taken": leave,"max_leaves":user.title.max_leaves}
+    data = {"leave_taken": leave, "max_leaves": user.title.max_leaves}
     return data
 
 
-@app.route("/leave/<int:id>", methods=["GET", "POST"])
+@app.route("/leave/<int:id>", methods=["POST"])
 def add_leave(id):
-    leaves = get_leave_data(id)
-    print('kkkkkkkkkk',leaves)
-
-
     if flask.request.method == "POST":
-        if leaves['leave_taken'] < leaves['max_leaves']:
-           
-            date = flask.request.form["date"]
-            reason = flask.request.form["reason"]
-            s = models.Leave(employee_id=id, date=date, reason=reason)
-            db.session.add(s)
-            db.session.commit()
-            flask.flash("Leave added successfully!")
-            return flask.redirect(flask.url_for("employees"))
-        else:
-            flask.flash("Maximum Leave Limit attained added!")
-            return flask.redirect(flask.url_for("employees"))
+        leaves = get_leave_data(id)
+        
+        if leaves["leave_taken"] < leaves["max_leaves"]:
+            try:
+                data = flask.request.get_json()
+                date = data.get('date')
+                reason = data.get('reason')
+            except Exception as e:
+                return flask.jsonify({"message": "Invalid JSON format"}), 400
 
-
-@app.route("/search", methods=["GET", "POST"])
-def search_employee():
-    if flask.request.method == "POST":
-        employee_id = flask.request.form.get("employee_id")
-
-        if employee_id:
-            qs = db.select(models.Employee).where(models.Employee.id == employee_id)
-            user = db.session.execute(qs).scalar()
-
-            if user:
-                return flask.redirect(flask.url_for("employee_details", id=user.id))
+            if date and reason:
+                leave_entry = models.Leave(employee_id=id, date=date, reason=reason)
+                
+                try:
+                    db.session.add(leave_entry)
+                    db.session.commit()
+                    return flask.jsonify({"message": "Leave added successfully"})
+                except Exception as e:
+                    db.session.rollback()
+                    return flask.jsonify({"message":"Failed to add leave."}), 
             else:
-                flask.flash("Employee not found.")
+                return flask.jsonify({"message": "Invalid 'date' or 'reason' in the request"})
         else:
-            flask.flash("Please enter an employee ID.")
-
-    return flask.render_template("search.html")
-
-
-@app.route("/about")
-def about():
-    return flask.render_template("about.html")
-
-
-if __name__ == "__main__":
-    app.run()
-   
+            return flask.jsonify({"message": "Maximum leave limit attained"}), 400
     
+    
+
+
+
+
     
